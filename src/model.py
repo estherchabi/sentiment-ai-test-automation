@@ -21,7 +21,8 @@ class SentimentModel:
     ]
 
     def __init__(self):
-        logger.info("SentimentModel initialisé")
+        #logger.info("SentimentModel initialisé")
+        print("[SentimentModel] Modele charge.")
 
     def predict(self, text: str) -> dict:
         """
