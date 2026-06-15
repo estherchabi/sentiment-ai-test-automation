@@ -17,19 +17,13 @@ pipeline {
 
         stage('Install') {
             steps {
-                sh '''
-                    python3 -m venv .venv
-                    . .venv/bin/activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                '''
+                sh 'pip3 install -r requirements.txt'
             }
         }
 
         stage('Lint') {
             steps {
                 sh '''
-                    . .venv/bin/activate
                     pylint src/ --fail-under=7.0 \
                            --output-format=parseable \
                            > pylint-report.txt || true
@@ -46,7 +40,6 @@ pipeline {
         stage('Tests Unitaires') {
             steps {
                 sh '''
-                    . .venv/bin/activate
                     pytest tests/test_model.py \
                            --cov=src \
                            --cov-report=xml:coverage.xml \
@@ -64,7 +57,6 @@ pipeline {
         stage('Tests Integration') {
             steps {
                 sh '''
-                    . .venv/bin/activate
                     pytest tests/test_api.py \
                            --junit-xml=junit-integration.xml \
                            -v
@@ -87,26 +79,27 @@ pipeline {
 
         stage('SonarQube') {
             steps {
-                sh '''
-                    . .venv/bin/activate
-                    sonar-scanner \
-                      -Dsonar.projectKey=sentiment-ai \
-                      -Dsonar.sources=src \
-                      -Dsonar.tests=tests \
-                      -Dsonar.python.coverage.reportPaths=coverage.xml \
-                      -Dsonar.host.url=${SONAR_HOST_URL} \
-                      -Dsonar.token=${SONAR_TOKEN}
-                '''
+                script {
+                    docker.image('sonarsource/sonar-scanner-cli:5').inside(
+                        "--network sentiment-network"
+                    ) {
+                        sh """
+                            sonar-scanner \
+                              -Dsonar.projectKey=sentiment-ai \
+                              -Dsonar.sources=src \
+                              -Dsonar.tests=tests \
+                              -Dsonar.python.coverage.reportPaths=coverage.xml \
+                              -Dsonar.host.url=${SONAR_HOST_URL} \
+                              -Dsonar.token=${SONAR_TOKEN}
+                        """
+                    }
+                }
             }
         }
 
-        // STAGE 8 -- correction
         stage('Security Scan') {
             steps {
-                sh '''
-                    . .venv/bin/activate
-                    bandit -r src/ -f json -o bandit-report.json || true
-                '''
+                sh 'bandit -r src/ -f json -o bandit-report.json || true'
             }
             post {
                 always {
@@ -116,7 +109,6 @@ pipeline {
             }
         }
 
-        // STAGE 9 -- correction
         stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
@@ -124,7 +116,6 @@ pipeline {
                 }
             }
         }
-
     }
 
     post {
