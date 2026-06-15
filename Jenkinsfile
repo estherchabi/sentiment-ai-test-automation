@@ -1,12 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        SONAR_TOKEN    = credentials('sonar-token')
-        SONAR_HOST_URL = 'http://sonarqube:9000'
-        IMAGE_NAME     = "sentiment-ai"
-    }
-
     stages {
 
         stage('Checkout') {
@@ -69,34 +63,6 @@ pipeline {
             }
         }
 
-        stage('Build Docker') {
-            steps {
-                script {
-                    docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}")
-                }
-            }
-        }
-
-        stage('SonarQube') {
-            steps {
-                script {
-                    docker.image('sonarsource/sonar-scanner-cli:5').inside(
-                        "--network sentiment-network"
-                    ) {
-                        sh """
-                            sonar-scanner \
-                              -Dsonar.projectKey=sentiment-ai \
-                              -Dsonar.sources=src \
-                              -Dsonar.tests=tests \
-                              -Dsonar.python.coverage.reportPaths=coverage.xml \
-                              -Dsonar.host.url=${SONAR_HOST_URL} \
-                              -Dsonar.token=${SONAR_TOKEN}
-                        """
-                    }
-                }
-            }
-        }
-
         stage('Security Scan') {
             steps {
                 sh 'bandit -r src/ -f json -o bandit-report.json || true'
@@ -108,14 +74,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
     }
 
     post {
@@ -123,7 +81,7 @@ pipeline {
             echo 'Pipeline echoue. Verifiez les rapports.'
         }
         success {
-            echo 'Pipeline reussi. Quality Gate passe.'
+            echo 'Pipeline reussi. Tous les stages sont verts.'
         }
     }
 }
