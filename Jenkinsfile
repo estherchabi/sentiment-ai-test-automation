@@ -17,19 +17,14 @@ pipeline {
 
         stage('Install') {
             steps {
-                sh '''
-                    apt-get install -y python3-full 2>/dev/null || true
-                    python3 -m venv .venv
-                    .venv/bin/pip install --upgrade pip
-                    .venv/bin/pip install -r requirements.txt
-                '''
+                sh 'pip3 install -r requirements.txt --break-system-packages'
             }
         }
 
         stage('Lint') {
             steps {
                 sh '''
-                    .venv/bin/pylint src/ --fail-under=7.0 \
+                    pylint src/ --fail-under=7.0 \
                            --output-format=parseable \
                            > pylint-report.txt || true
                 '''
@@ -45,7 +40,7 @@ pipeline {
         stage('Tests Unitaires') {
             steps {
                 sh '''
-                    .venv/bin/pytest tests/test_model.py \
+                    pytest tests/test_model.py \
                            --cov=src \
                            --cov-report=xml:coverage.xml \
                            --junit-xml=junit-unit.xml \
@@ -62,7 +57,7 @@ pipeline {
         stage('Tests Integration') {
             steps {
                 sh '''
-                    .venv/bin/pytest tests/test_api.py \
+                    pytest tests/test_api.py \
                            --junit-xml=junit-integration.xml \
                            -v
                 '''
@@ -104,7 +99,7 @@ pipeline {
 
         stage('Security Scan') {
             steps {
-                sh '.venv/bin/bandit -r src/ -f json -o bandit-report.json || true'
+                sh 'bandit -r src/ -f json -o bandit-report.json || true'
             }
             post {
                 always {
