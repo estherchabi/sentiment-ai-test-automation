@@ -1,0 +1,21 @@
+INFO:sentimentai:SentimentModel initialisé
+============================= test session starts ==============================
+platform darwin -- Python 3.11.5, pytest-8.2.0, pluggy-1.6.0 -- /Users/estherchabi/epsi/sentiment-ai-test-automation/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/estherchabi/epsi/sentiment-ai-test-automation
+configfile: pytest.ini
+plugins: cov-5.0.0, Faker-24.0.0, anyio-4.13.0
+collecting ... collected 1 item
+
+tests/test_api.py::test_predict_texte_vide_retourne_422 INFO:sentimentai:Statistiques remises à zéro.
+INFO:httpx:HTTP Request: POST http://testserver/reset "HTTP/1.1 200 OK"
+INFO:httpx:HTTP Request: POST http://testserver/predict "HTTP/1.1 422 Unprocessable Entity"
+PASSED
+
+=============================== warnings summary ===============================
+.venv/lib/python3.11/site-packages/starlette/formparsers.py:12
+  /Users/estherchabi/epsi/sentiment-ai-test-automation/.venv/lib/python3.11/site-packages/starlette/formparsers.py:12: PendingDeprecationWarning: Please use `import python_multipart` instead.
+    import multipart
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+========================= 1 passed, 1 warning in 0.11s =========================
